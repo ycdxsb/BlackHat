@@ -1,4 +1,4 @@
-## BlackHat USA 2020
+## BlackHat 2020
 ### Hacking Government Cybersecurity
 This session delivered by Pete Cooper, the Deputy Director for Cyber Defence at the Cabinet Office will focus on his perspectives and the latest developments in cyber security across government and beyond. From understanding and managing risk at government scale, to collaborating with industry partners and the hacker community, this session will explore how we can view and work through our cyber challenges to reduce risks to our societies.  As hostile actors seek to exploit the COVID-19 pandemic for their strategic advantage, confidence in the security of our digital lives becomes ever more important. Pete will talk about cyber security across government and utilising his diverse military, private sector and government background to drive cutting edge thinking, collaboration and change.
 ### It&#39;s not FINished: The Evolving Maturity in Ransomware Operations

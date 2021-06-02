@@ -1,4 +1,4 @@
-## BlackHat USA 2020
+## BlackHat 2021
 ### Lessons From 11 Billion Breached Records
 Security flaws, hackers and data breaches are the new normal. It’s not just those of us in the industry facing these foes every single day, it’s everyone. Whether you’re online or offline, you simply cannot exist today without your personal information being digitised in systems which are often left vulnerable and exploited at the whim of attackers. But who are these people, the ones who seek to break through our defences and exploit our data? And how are they continually so effective at doing so, despite our best efforts?In this talk, you’ll hear from the creator of “Have I Been Pwned” about the lessons he’s learned after processing more than 11B records of breached data. You’ll get a glimpse behind the scenes of what caused some of these devasting incidents and how they continue to wreak havoc today, despite how much more aware the industry is becoming. It’s a frightening, eye-opening and entertaining look at infosec and data breaches.
 ### Disappeared Coins: Steal Hashrate in Stratum Secretly

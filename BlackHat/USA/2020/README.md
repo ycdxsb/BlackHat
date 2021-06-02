@@ -1,4 +1,4 @@
-## BlackHat USA 2020
+## BlackHat 2020
 ### Stress-Testing Democracy: Election Integrity During a Global Pandemic
 Technologists have long warned that much of the technology and infrastructure we depend on for voting suffers from exploitable vulnerabilities that could be used to cast doubt on the integrity of elections. Those problems are extremely challenging under normal circumstances, but a global pandemic adds a new dimension to the mix: protecting the health of voters and election workers. How do we securely and robustly scale up safer, broadly accessible voting mechanisms between now and November? This talk will explore the challenges - technological, logistical, and political - of keeping our elections running during a crisis.
 ### Carrying our Insecurities with Us: The Risks of Implanted Medical Devices in Secure Spaces

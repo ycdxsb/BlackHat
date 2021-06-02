@@ -1,4 +1,4 @@
-## BlackHat USA 2020
+## BlackHat 2020
 ### Engineering Cybersecurity for a Nation: What Singapore is Learning from Cars and Sanitation
 Defending a country is different from a corporate network. Singapore wants to be a Smart Nation and wants to shift the paradigm of cybersecurity in order to achieve that. Doing so will require us to challenge some mental models: Should cybersecurity be a public good? Should it be an engineering problem or a policy problem? Should users be solely responsible for it? Should it be seen as a cost or a benefit to a company? Facing these dilemmas and looking at how other sectors have addressed similar challenges, could help us define a new way forward for cybersecurity in Singapore.
 ### BitLeaker: Subverting BitLocker with One Vulnerability

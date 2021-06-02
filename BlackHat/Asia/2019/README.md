@@ -1,4 +1,4 @@
-## BlackHat USA 2020
+## BlackHat 2019
 ### The Next Arms Race
 The Internet is not supposed to have borders, but it does. Countries fight and spy on each other on the Internet every day. So, borders still exist on the Internet, and almost all countries are investing into offensive use of cyber power. The new weapons they are developing are different from any other kind of weapon we've ever seen, and we are now seeing the very beginning of the next arms race.
 ### NetSpectre: A Truly Remote Spectre Variant

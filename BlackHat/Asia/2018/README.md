@@ -1,4 +1,4 @@
-## BlackHat USA 2020
+## BlackHat 2018
 ### National Cyber-Aggression and Private-Sector Internet Infrastructure
 Bill Woodcock will address past and current efforts to curtail nation-state cyber-attacks on the private-sector core infrastructure of the Internet. From the live fire cyber exercises of the dot-com era and the US-China-Russia cyber-conflicts and United Nations “Group of Government Experts" of the subsequent decade to the current effort of the Global Commission on the Stability of Cyberspace, Bill will discuss the misaligned incentives that encourage militaries to focus on cyber-offense while ignoring defense, the direct effects and blowback that endanger the central infrastructure of the Internet, and the economic costs these attacks impose on Internet users.
 ### I Don't Want to Sleep Tonight: Subverting Intel TXT with S3 Sleep
