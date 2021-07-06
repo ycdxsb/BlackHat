@@ -1,4 +1,4 @@
-# Security Conference
+# BlackHat
 
 - [BlackHat](https://www.blackhat.com/)
   - [USA](https://github.com/ycdxsb/SecurityConference/tree/main/BlackHat/USA)
@@ -17,5 +17,3 @@
     - [2020](https://github.com/ycdxsb/SecurityConference/tree/main/BlackHat/Europe/2020)
     - [2019](https://github.com/ycdxsb/SecurityConference/tree/main/BlackHat/Europe/2019)
     - [2018](https://github.com/ycdxsb/SecurityConference/tree/main/BlackHat/Europe/2018)
-
-- [DEFCON](https://www.defcon.org/)
